@@ -1,0 +1,4 @@
+numpy~=1.26.3
+pillow~=10.2.0
+imageio~=2.33.1
+customtkinter~=5.2.2
