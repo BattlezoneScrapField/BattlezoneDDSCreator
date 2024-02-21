@@ -7,18 +7,25 @@ from PIL import Image, ImageTk
 
 
 class App(customtkinter.CTk):
-    def __init__(self):
-        super().__init__()
+    # TODO invert
+    width = 1200  # 900
+    height = 840  # 600
 
-        self.title("Battlezone DDS Creator")
-        self.geometry("900x600")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-        # set grid layout 1x2
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
+        self.title("BZ Image Conversion Tool")
+        self.geometry(f"{self.width}x{self.height}")
+        self.resizable(False, False)
+        customtkinter.set_default_color_theme("green")  # Themes: "blue" (standard), "green", "dark-blue"
 
-        # load images with light and dark mode image
+        # load and create background image
         image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui")
+        self.bg_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "bg_gradient_bz_blur.jpg")),
+                                               size=(self.width, self.height))
+        self.bg_image_label = customtkinter.CTkLabel(self, image=self.bg_image)
+        self.bg_image_label.grid(row=0, column=0)
+
         self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "nsdf_star.png")),
                                                  size=(26, 26))
         self.large_bzone_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "bzone_blank.png")),
@@ -29,39 +36,20 @@ class App(customtkinter.CTk):
                                                 size=(20, 20))
         self.empty_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "no_img.png")),
                                                   size=(200, 200))
-        # create navigation frame
-        self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
-        self.navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.navigation_frame.grid_rowconfigure(4, weight=1)
 
-        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text="  DDS Creator",
-                                                             image=self.logo_image,
-                                                             compound="left",
-                                                             font=customtkinter.CTkFont(size=15, weight="bold"))
-        self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
+        # create login frame
+        self.login_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.login_frame.grid(row=0, column=0, sticky="ns")
+        self.login_image = customtkinter.CTkLabel(self.login_frame, text="",
+                                                  image=self.large_bzone_image)
+        self.login_image.grid(row=0, column=0, padx=30, pady=(60, 15))
+        self.login_label = customtkinter.CTkLabel(self.login_frame, text="Image Conversion Tool",
+                                                  font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.login_label.grid(row=1, column=0, padx=30, pady=(15, 15))
 
-        self.home_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10,
-                                                   text="Convert to DDS",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   hover_color=("gray70", "gray30"),
-                                                   image=self.tab_image, anchor="w", command=self.home_button_event)
-        self.home_button.grid(row=1, column=0, sticky="ew")
-
-        self.navigation_frame_bz_image = customtkinter.CTkLabel(self.navigation_frame, text="",
-                                                                image=self.small_bzone_image)
-        self.navigation_frame_bz_image.grid(row=6, column=0, pady=20)
-
-        # create home frame
-        self.home_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.home_frame.grid_columnconfigure(0, weight=1)
-
-        self.home_frame_left = customtkinter.CTkFrame(self.home_frame, corner_radius=40)
-        self.home_frame_left.grid(row=0, column=0, padx=(40, 10), pady=60, sticky="nsew")
-        self.home_frame_left.grid_columnconfigure(0, weight=1)
-
-        self.home_frame_right = customtkinter.CTkFrame(self.home_frame, corner_radius=40)
-        self.home_frame_right.grid(row=0, column=1, padx=(10, 40), pady=60, sticky="nsew")
-        self.home_frame_right.grid_columnconfigure(0, weight=1)
+        self.home_frame_mid = customtkinter.CTkFrame(self.login_frame, corner_radius=40)
+        self.home_frame_mid.grid(row=2, column=0, padx=(10, 10), pady=10, sticky="nsew")
+        self.home_frame_mid.grid_columnconfigure(0, weight=1)
 
         """
         self.home_frame_large_image_label = customtkinter.CTkLabel(self.home_frame, text="",
@@ -69,56 +57,64 @@ class App(customtkinter.CTk):
         self.home_frame_large_image_label.grid(row=0, column=0, padx=20, pady=50)
         """
 
-        self.image_file_label = customtkinter.CTkLabel(self.home_frame_left, text="No file selected!",
+        self.image_file_label = customtkinter.CTkLabel(self.home_frame_mid, text="No file selected!",
                                                        font=customtkinter.CTkFont(size=14, weight="bold"))
         self.image_file_label.grid(row=2, column=0, padx=20, pady=(40, 10))
 
-        self.browse_button = customtkinter.CTkButton(self.home_frame_left, text="Browse for Image",
+        self.optionmenu_1 = customtkinter.CTkOptionMenu(self.home_frame_mid, dynamic_resizing=False,
+                                                        fg_color="#39424a",
+                                                        button_color="#4b5a69",
+                                                        button_hover_color="#4b5a69",
+                                                        values=["Image to DDS", "DXTBZ2 to DDS", "Blah Blah"])
+        self.optionmenu_1.grid(row=3, column=0, padx=20, pady=(20, 10), sticky="nsew")
+
+        self.browse_button = customtkinter.CTkButton(self.home_frame_mid, text="Browse for Image",
                                                      corner_radius=20,
                                                      fg_color="#39424a", hover_color="#4b5a69",
+                                                     image=self.tab_image,
                                                      command=self.browse_file)
-        self.browse_button.grid(row=3, column=0, padx=20, pady=10, ipadx=60, ipady=12)
+        self.browse_button.grid(row=5, column=0, padx=20, pady=10, ipadx=30, ipady=8, sticky="nsew")
 
-        self.convert_button = customtkinter.CTkButton(self.home_frame_left, text="Convert",
+        self.convert_button = customtkinter.CTkButton(self.home_frame_mid, text="Convert",
                                                       corner_radius=20,
-                                                      border_width=2,
+                                                      # border_width=2,
                                                       fg_color="#39424a", hover_color="#4b5a69",
                                                       command=self.convert_to_dds)
-        self.convert_button.grid(row=4, column=0, padx=20, pady=10, ipadx=60, ipady=12)
+        self.convert_button.grid(row=6, column=0, padx=20, pady=10, ipadx=30, ipady=8, sticky="nsew")
 
-        self.image_selected_label = customtkinter.CTkLabel(self.home_frame_right, text="Selected image:")
-        self.image_selected_label.grid(row=5, column=0, padx=20, pady=10)
+        self.image_selected_label = customtkinter.CTkLabel(self.home_frame_mid, text="Selected image:")
+        self.image_selected_label.grid(row=7, column=0, padx=20, pady=10, sticky="nsew")
 
         # self.image_selected_frame = customtkinter.CTkFrame(self.home_frame, corner_radius=40)
         # self.image_selected_frame.grid(row=6, column=0,  padx=20, pady=10, sticky="nsew")
         # self.image_selected_frame.grid_columnconfigure(1, weight=1)
 
-        self.image_label = customtkinter.CTkLabel(self.home_frame_right, text="", image=self.empty_image)
-        self.image_label.grid(row=6, column=0, padx=40, pady=(8, 20), sticky="nsew")
+        self.image_label = customtkinter.CTkLabel(self.home_frame_mid, text="", image=self.empty_image)
+        self.image_label.grid(row=8, column=0, padx=40, pady=(8, 20), sticky="nsew")
 
-        self.image_selected_label_warn = customtkinter.CTkLabel(self.home_frame_right,
+        self.image_selected_label_warn = customtkinter.CTkLabel(self.home_frame_mid,
                                                                 text="",
                                                                 font=customtkinter.CTkFont(size=9, weight="bold"))
         self.image_selected_label_warn.grid(row=7, column=0, padx=20, pady=(4, 10))
 
-        # select default frame
-        self.select_frame_by_name("home")
+        # create main frame
+        self.main_frame = customtkinter.CTkFrame(self, corner_radius=0)
+        self.main_frame.grid_columnconfigure(0, weight=1)
+        self.main_label = customtkinter.CTkLabel(self.main_frame, text="CustomTkinter\nMain Page",
+                                                 font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.main_label.grid(row=0, column=0, padx=30, pady=(30, 15))
+        self.back_button = customtkinter.CTkButton(self.main_frame, text="Back", command=self.back_event, width=200)
+        self.back_button.grid(row=1, column=0, padx=30, pady=(15, 15))
 
-    def select_frame_by_name(self, name):
-        # set button color for selected button
-        self.home_button.configure(fg_color=("gray75", "gray25") if name == "home" else "transparent")
+    def login_event(self):
+        print("Login pressed - username:", self.username_entry.get(), "password:", self.password_entry.get())
 
-        # show selected frame
-        if name == "home":
-            self.home_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.home_frame.grid_forget()
+        self.login_frame.grid_forget()  # remove login frame
+        self.main_frame.grid(row=0, column=0, sticky="nsew", padx=100)  # show main frame
 
-    def home_button_event(self):
-        self.select_frame_by_name("home")
-
-    def change_appearance_mode_event(self, new_appearance_mode):
-        customtkinter.set_appearance_mode(new_appearance_mode)
+    def back_event(self):
+        self.main_frame.grid_forget()  # remove main frame
+        self.login_frame.grid(row=0, column=0, sticky="ns")  # show login frame
 
     def browse_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg")])
